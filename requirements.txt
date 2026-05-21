@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+tensorflow
+xgboost
+sqlalchemy
+psycopg2-binary
+kafka-python
+apache-airflow
+streamlit
+plotly
+joblib
+pydantic
