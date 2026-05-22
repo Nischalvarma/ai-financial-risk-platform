@@ -1,188 +1,101 @@
 import pandas as pd
-import tensorflow as tf
+import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from sklearn.metrics import (
-    classification_report,
-    confusion_matrix
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping
+
+# Load dataset
+df = pd.read_csv(
+    "data/processed/customer_features.csv"
 )
 
-DATA_PATH = "data/processed/customer_features.csv"
+# Features
+df["target"] = (df["fraud_ratio"] > 0.5).astype(int)
 
+X = df.drop(columns=["customer_id", "target"])
 
-def load_data():
+y = df["target"]
 
-    print("Loading feature dataset")
+# Scale features
+scaler = StandardScaler()
 
-    df = pd.read_csv(DATA_PATH)
+X_scaled = scaler.fit_transform(X)
 
-    return df
+# Train test split
+X_train, X_test, y_train, y_test = train_test_split(
 
+    X_scaled,
+    y,
 
-def prepare_data(df):
+    test_size=0.2,
 
-    print("Preparing neural network features")
+    random_state=42
+)
 
-    df['high_risk_customer'] = (
-        df['fraud_ratio'] > 0.05
-    ).astype(int)
+# Build neural network
+model = Sequential([
 
-    features = [
+    Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
 
-        'transaction_count',
+    Dense(32, activation='relu'),
 
-        'avg_transaction_amount',
+    Dense(16, activation='relu'),
 
-        'max_transaction_amount',
+    Dense(1, activation='sigmoid')
+])
 
-        'min_transaction_amount',
+# Compile model
+model.compile(
 
-        'total_transaction_amount',
+    optimizer='adam',
 
-        'total_credit_transactions',
+    loss='binary_crossentropy',
 
-        'total_debit_transactions',
+    metrics=['accuracy']
+)
 
-        'fraud_transactions',
+# Prevent overfitting
+early_stop = EarlyStopping(
 
-        'fraud_ratio'
-    ]
+    monitor='val_loss',
 
-    X = df[features]
+    patience=5,
 
-    y = df['high_risk_customer']
+    restore_best_weights=True
+)
 
-    scaler = StandardScaler()
+# Train model
+model.fit(
 
-    X_scaled = scaler.fit_transform(X)
+    X_train,
+    y_train,
 
-    return X_scaled, y
+    validation_split=0.2,
 
+    epochs=50,
 
-def build_neural_network(input_dim):
+    batch_size=32,
 
-    model = tf.keras.Sequential([
+    callbacks=[early_stop],
 
-        tf.keras.layers.Dense(
-            64,
-            activation='relu',
-            input_shape=(input_dim,)
-        ),
+    verbose=1
+)
 
-        tf.keras.layers.Dropout(0.3),
+# Evaluate
+loss, accuracy = model.evaluate(
+    X_test,
+    y_test
+)
 
-        tf.keras.layers.Dense(
-            32,
-            activation='relu'
-        ),
+print(f"Model Accuracy: {accuracy:.2f}")
 
-        tf.keras.layers.Dropout(0.2),
+# Save model
+model.save(
+    "src/deep_learning/fraud_risk_model.keras"
+)
 
-        tf.keras.layers.Dense(
-            16,
-            activation='relu'
-        ),
-
-        tf.keras.layers.Dense(
-            1,
-            activation='sigmoid'
-        )
-    ])
-
-    model.compile(
-
-        optimizer='adam',
-
-        loss='binary_crossentropy',
-
-        metrics=['accuracy']
-    )
-
-    return model
-
-
-if __name__ == "__main__":
-
-    print("Deep Learning Pipeline Started")
-
-    df = load_data()
-
-    X, y = prepare_data(df)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
-        stratify=y
-    )
-
-    model = build_neural_network(
-        X_train.shape[1]
-    )
-
-    print("Training neural network")
-
-    history = model.fit(
-
-        X_train,
-
-        y_train,
-
-        validation_split=0.2,
-
-        epochs=30,
-
-        batch_size=32,
-
-        verbose=1
-    )
-
-    print("Evaluating model")
-
-    predictions = model.predict(X_test)
-
-    predictions = (
-        predictions > 0.5
-    ).astype(int)
-
-    print()
-
-    print("Classification Report")
-
-    print(
-        classification_report(
-            y_test,
-            predictions
-        )
-    )
-
-    print()
-
-    print("Confusion Matrix")
-
-    print(
-        confusion_matrix(
-            y_test,
-            predictions
-        )
-    )
-
-    print()
-
-    test_loss, test_accuracy = model.evaluate(
-        X_test,
-        y_test
-    )
-
-    print(f"Test Accuracy: {test_accuracy:.4f}")
-
-    model.save(
-        "src/deep_learning/fraud_risk_model.keras"
-    )
-
-    print("Neural network saved successfully")
-
-    print("Pipeline execution completed")
+print("Neural network model saved.")
