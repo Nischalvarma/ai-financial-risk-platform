@@ -81,16 +81,20 @@ def predict(data: TransactionData):
 
     probability = float(prediction[0][0])
 
-    risk = (
-        "HIGH RISK"
-        if probability > 0.5
-        else "LOW RISK"
-    )
+print("RAW PREDICTION:", probability)
+
+
+    
+   risk = (
+    "HIGH RISK"
+    if probability > 0.1
+    else "LOW RISK"
+)
 
     return {
 
         "fraud_probability":
-            round(probability, 4),
+            round(probability, 10),
 
         "risk_level":
             risk
