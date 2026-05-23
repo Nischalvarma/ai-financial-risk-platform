@@ -1,5 +1,5 @@
 import pandas as pd
-import tensorflow as tf
+
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -9,8 +9,10 @@ app = FastAPI(
     version="2.0"
 )
 
-model = tf.keras.models.load_model(
-    "src/deep_learning/fraud_risk_model.keras"
+import joblib
+
+model = joblib.load(
+    "src/models/fraud_model.pkl"
 )
 
 
@@ -77,9 +79,9 @@ def predict(data: TransactionData):
             data.fraud_ratio
     }])
 
-    prediction = model.predict(input_data)
-
-    probability = float(prediction[0][0])
+    probability = float(
+    model.predict_proba(input_data)[0][1]
+)
 
 print("RAW PREDICTION:", probability)
 
@@ -87,15 +89,15 @@ print("RAW PREDICTION:", probability)
     
    risk = (
     "HIGH RISK"
-    if probability > 0.1
+    if probability > 0.5
     else "LOW RISK"
 )
 
-    return {
+return {
 
-        "fraud_probability":
-            round(probability, 10),
+    "fraud_probability":
+        round(probability, 4),
 
-        "risk_level":
-            risk
-    }
+    "risk_level":
+        risk
+}

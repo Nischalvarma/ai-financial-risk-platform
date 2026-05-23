@@ -160,3 +160,11 @@ if __name__ == "__main__":
     )
 
     print("Pipeline execution completed")
+
+    import joblib
+
+joblib.dump(
+    XGBClassifier,
+    "src/models/fraud_model.pkl"
+)
+print("XGBoost model saved.")
