@@ -1,54 +1,69 @@
 import pandas as pd
-
+import joblib
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI(
     title="Financial Risk Intelligence API",
-    version="2.0"
+    version="3.0"
 )
 
-import joblib
-
+# Load trained XGBoost model
 model = joblib.load(
     "src/models/fraud_model.pkl"
 )
 
 
+# Input schema
 class TransactionData(BaseModel):
 
     transaction_count: float
+
     avg_transaction_amount: float
+
     max_transaction_amount: float
+
     min_transaction_amount: float
+
     total_transaction_amount: float
+
     total_credit_transactions: float
+
     total_debit_transactions: float
+
     fraud_transactions: float
+
     fraud_ratio: float
 
 
+# Home route
 @app.get("/")
 def home():
 
     return {
+
         "message":
             "Financial Risk Intelligence API Running"
     }
 
 
+# Health check route
 @app.get("/health")
 def health_check():
 
     return {
-        "status": "healthy"
+
+        "status":
+            "healthy"
     }
 
 
+# Prediction route
 @app.post("/predict")
-def predict(data: TransactionData):
+def predict_risk(data: TransactionData):
 
+    # Convert request into dataframe
     input_data = pd.DataFrame([{
 
         "transaction_count":
@@ -79,25 +94,24 @@ def predict(data: TransactionData):
             data.fraud_ratio
     }])
 
+    # Predict fraud probability
     probability = float(
-    model.predict_proba(input_data)[0][1]
-)
+        model.predict_proba(input_data)[0][1]
+    )
 
-print("RAW PREDICTION:", probability)
+    # Risk classification
+    risk = (
+        "HIGH RISK"
+        if probability > 0.5
+        else "LOW RISK"
+    )
 
+    # API response
+    return {
 
-    
-   risk = (
-    "HIGH RISK"
-    if probability > 0.5
-    else "LOW RISK"
-)
+        "fraud_probability":
+            round(probability, 4),
 
-return {
-
-    "fraud_probability":
-        round(probability, 4),
-
-    "risk_level":
-        risk
-}
+        "risk_level":
+            risk
+    }
