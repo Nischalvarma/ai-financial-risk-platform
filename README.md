@@ -260,23 +260,26 @@ ai-financial-risk-platform/
 
 ---
 
-# GitHub Repository Overview
+# GitHub Repository
+
+## Repository Overview
 
 ![GitHub Overview](images/github-overview.png)
 
 ---
 
-# GitHub README Section
+## README Documentation
 
 ![GitHub README](images/github-readme.png)
 
 ---
 
-# GitHub Project Structure
+## Project Structure
 
 ![GitHub Structure](images/github-structure.png)
+
 ---
 
 # Author
 
-Nischal Varma Kokkiligadda
+Nischal Varma Kokkiligaddas
