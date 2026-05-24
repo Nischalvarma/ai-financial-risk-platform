@@ -8,41 +8,75 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-
 from xgboost import XGBClassifier
 
-print("Fraud Risk Modeling Pipeline Started")
+print("Financial Risk Modeling Pipeline Started")
 
-# Load dataset
-print("Loading feature dataset")
+# ==========================================================
+# LOAD DATASET
+# ==========================================================
 
 df = pd.read_csv(
     "data/processed/customer_features.csv"
 )
 
+print("\nDataset Preview")
 print(df.head())
 
-# Create binary target
+# ==========================================================
+# CREATE BETTER FRAUD TARGET
+# ==========================================================
+
 df["target"] = (
-    df["fraud_ratio"] > 0.5
+
+    (
+        df["fraud_ratio"] > 0.15
+    )
+
+    |
+
+    (
+        df["avg_transaction_amount"] > 20000
+    )
+
+    |
+
+    (
+        df["fraud_transactions"] > 5
+    )
+
 ).astype(int)
 
-# Features
-X = df.drop(
-    columns=[
-        "customer_id",
-        "target"
-    ]
-)
+# ==========================================================
+# FEATURES
+# ==========================================================
 
-# Target
+X = df[[
+    "transaction_count",
+    "avg_transaction_amount",
+    "max_transaction_amount",
+    "min_transaction_amount",
+    "total_transaction_amount",
+    "total_credit_transactions",
+    "total_debit_transactions",
+    "fraud_transactions",
+    "fraud_ratio"
+]]
+
+# ==========================================================
+# TARGET
+# ==========================================================
+
 y = df["target"]
 
-print("Preparing ML features")
+print("\nFraud Distribution")
+print(y.value_counts())
 
-# Train test split
+# ==========================================================
+# TRAIN TEST SPLIT
+# ==========================================================
+
 X_train, X_test, y_train, y_test = train_test_split(
 
     X,
@@ -50,147 +84,62 @@ X_train, X_test, y_train, y_test = train_test_split(
 
     test_size=0.2,
 
-    random_state=42
-)
+    random_state=42,
 
-print("=" * 60)
+    stratify=y
+)
 
 # ==========================================================
-# Logistic Regression
+# TRAIN XGBOOST MODEL
 # ==========================================================
 
-print("Training Model: Logistic Regression")
+print("\nTraining XGBoost Model")
 
-lr_model = LogisticRegression(
-    max_iter=1000
-)
+model = XGBClassifier(
 
-lr_model.fit(
-    X_train,
-    y_train
-)
-
-lr_predictions = lr_model.predict(
-    X_test
-)
-
-lr_accuracy = accuracy_score(
-    y_test,
-    lr_predictions
-)
-
-print(f"Accuracy: {lr_accuracy:.4f}")
-
-print("\nClassification Report")
-
-print(
-    classification_report(
-        y_test,
-        lr_predictions
-    )
-)
-
-print("\nConfusion Matrix")
-
-print(
-    confusion_matrix(
-        y_test,
-        lr_predictions
-    )
-)
-
-print("=" * 60)
-
-# ==========================================================
-# Random Forest
-# ==========================================================
-
-print("\nTraining Model: Random Forest")
-
-rf_model = RandomForestClassifier(
-
-    n_estimators=200,
-
-    random_state=42
-)
-
-rf_model.fit(
-    X_train,
-    y_train
-)
-
-rf_predictions = rf_model.predict(
-    X_test
-)
-
-rf_accuracy = accuracy_score(
-    y_test,
-    rf_predictions
-)
-
-print(f"Accuracy: {rf_accuracy:.4f}")
-
-print("\nClassification Report")
-
-print(
-    classification_report(
-        y_test,
-        rf_predictions
-    )
-)
-
-print("\nConfusion Matrix")
-
-print(
-    confusion_matrix(
-        y_test,
-        rf_predictions
-    )
-)
-
-print("=" * 60)
-
-# ==========================================================
-# XGBoost
-# ==========================================================
-
-print("\nTraining Model: XGBoost")
-
-xgb = XGBClassifier(
-
-    n_estimators=200,
+    n_estimators=300,
 
     learning_rate=0.05,
 
     max_depth=6,
+
+    subsample=0.8,
+
+    colsample_bytree=0.8,
 
     random_state=42,
 
     eval_metric="logloss"
 )
 
-xgb.fit(
+model.fit(
     X_train,
     y_train
 )
 
-xgb_predictions = xgb.predict(
-    X_test
-)
+# ==========================================================
+# PREDICTIONS
+# ==========================================================
 
-xgb_accuracy = accuracy_score(
+predictions = model.predict(X_test)
+
+# ==========================================================
+# EVALUATION
+# ==========================================================
+
+accuracy = accuracy_score(
     y_test,
-    xgb_predictions
+    predictions
 )
 
-print(f"Accuracy: {xgb_accuracy:.4f}")
+print(f"\nModel Accuracy: {accuracy:.4f}")
 
 print("\nClassification Report")
 
 print(
     classification_report(
         y_test,
-        xgb_predictions
+        predictions
     )
 )
 
@@ -199,21 +148,19 @@ print("\nConfusion Matrix")
 print(
     confusion_matrix(
         y_test,
-        xgb_predictions
+        predictions
     )
 )
-
-print("=" * 60)
 
 # ==========================================================
 # SAVE TRAINED MODEL
 # ==========================================================
 
 joblib.dump(
-    xgb,
+    model,
     "src/models/fraud_model.pkl"
 )
 
-print("Trained XGBoost model saved.")
+print("\nTrained XGBoost model saved.")
 
 print("\nPipeline execution completed")

@@ -4,19 +4,27 @@ import joblib
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-# Initialize FastAPI
+# ==========================================================
+# FASTAPI APP
+# ==========================================================
+
 app = FastAPI(
     title="Financial Risk Intelligence API",
-    version="4.0"
+    version="5.0"
 )
 
-# Load trained XGBoost model
+# ==========================================================
+# LOAD MODEL
+# ==========================================================
+
 model = joblib.load(
     "src/models/fraud_model.pkl"
 )
 
+# ==========================================================
+# REQUEST SCHEMA
+# ==========================================================
 
-# Request schema
 class TransactionData(BaseModel):
 
     transaction_count: float
@@ -37,8 +45,10 @@ class TransactionData(BaseModel):
 
     fraud_ratio: float
 
+# ==========================================================
+# HOME ROUTE
+# ==========================================================
 
-# Home route
 @app.get("/")
 def home():
 
@@ -48,10 +58,12 @@ def home():
             "Financial Risk Intelligence API Running"
     }
 
+# ==========================================================
+# HEALTH CHECK
+# ==========================================================
 
-# Health route
 @app.get("/health")
-def health_check():
+def health():
 
     return {
 
@@ -59,14 +71,15 @@ def health_check():
             "healthy"
     }
 
+# ==========================================================
+# PREDICTION ROUTE
+# ==========================================================
 
-# Prediction route
 @app.post("/predict")
 def predict_risk(data: TransactionData):
 
     try:
 
-        # Convert request to dataframe
         input_data = pd.DataFrame([{
 
             "transaction_count":
@@ -97,8 +110,8 @@ def predict_risk(data: TransactionData):
                 data.fraud_ratio
         }])
 
-        # Ensure exact feature order
-        expected_columns = [
+        # EXACT TRAINING ORDER
+        input_data = input_data[[
 
             "transaction_count",
 
@@ -117,23 +130,18 @@ def predict_risk(data: TransactionData):
             "fraud_transactions",
 
             "fraud_ratio"
-        ]
+        ]]
 
-        input_data = input_data[expected_columns]
-
-        # Predict probability
         probability = float(
             model.predict_proba(input_data)[0][1]
         )
 
-        # Risk classification
         risk = (
             "HIGH RISK"
             if probability > 0.5
             else "LOW RISK"
         )
 
-        # Response
         return {
 
             "fraud_probability":
