@@ -50,7 +50,7 @@ Tableau Dashboard
 ```
 ---
 # Architecture Diagram
-[Architecture](images/architecture.png)
+![Architecture](images/architecture.png)
 ---
 
 # Tech Stack
