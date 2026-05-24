@@ -48,10 +48,8 @@ Render Cloud Deployment
   ↓
 Tableau Dashboard
 ```
-# Architecture Diagram
-
 ---
-
+# Architecture Diagram
 [Architecture](images/architecture.png)
 ---
 
