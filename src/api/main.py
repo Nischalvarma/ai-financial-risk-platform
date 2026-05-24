@@ -4,9 +4,10 @@ import joblib
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+# Initialize FastAPI
 app = FastAPI(
     title="Financial Risk Intelligence API",
-    version="3.0"
+    version="4.0"
 )
 
 # Load trained XGBoost model
@@ -15,7 +16,7 @@ model = joblib.load(
 )
 
 
-# Input schema
+# Request schema
 class TransactionData(BaseModel):
 
     transaction_count: float
@@ -48,7 +49,7 @@ def home():
     }
 
 
-# Health check route
+# Health route
 @app.get("/health")
 def health_check():
 
@@ -63,55 +64,89 @@ def health_check():
 @app.post("/predict")
 def predict_risk(data: TransactionData):
 
-    # Convert request into dataframe
-    input_data = pd.DataFrame([{
+    try:
 
-        "transaction_count":
-            data.transaction_count,
+        # Convert request to dataframe
+        input_data = pd.DataFrame([{
 
-        "avg_transaction_amount":
-            data.avg_transaction_amount,
+            "transaction_count":
+                data.transaction_count,
 
-        "max_transaction_amount":
-            data.max_transaction_amount,
+            "avg_transaction_amount":
+                data.avg_transaction_amount,
 
-        "min_transaction_amount":
-            data.min_transaction_amount,
+            "max_transaction_amount":
+                data.max_transaction_amount,
 
-        "total_transaction_amount":
-            data.total_transaction_amount,
+            "min_transaction_amount":
+                data.min_transaction_amount,
 
-        "total_credit_transactions":
-            data.total_credit_transactions,
+            "total_transaction_amount":
+                data.total_transaction_amount,
 
-        "total_debit_transactions":
-            data.total_debit_transactions,
+            "total_credit_transactions":
+                data.total_credit_transactions,
 
-        "fraud_transactions":
-            data.fraud_transactions,
+            "total_debit_transactions":
+                data.total_debit_transactions,
 
-        "fraud_ratio":
-            data.fraud_ratio
-    }])
+            "fraud_transactions":
+                data.fraud_transactions,
 
-    # Predict fraud probability
-    probability = float(
-        model.predict_proba(input_data)[0][1]
-    )
+            "fraud_ratio":
+                data.fraud_ratio
+        }])
 
-    # Risk classification
-    risk = (
-        "HIGH RISK"
-        if probability > 0.5
-        else "LOW RISK"
-    )
+        # Ensure exact feature order
+        expected_columns = [
 
-    # API response
-    return {
+            "transaction_count",
 
-        "fraud_probability":
-            round(probability, 4),
+            "avg_transaction_amount",
 
-        "risk_level":
-            risk
-    }
+            "max_transaction_amount",
+
+            "min_transaction_amount",
+
+            "total_transaction_amount",
+
+            "total_credit_transactions",
+
+            "total_debit_transactions",
+
+            "fraud_transactions",
+
+            "fraud_ratio"
+        ]
+
+        input_data = input_data[expected_columns]
+
+        # Predict probability
+        probability = float(
+            model.predict_proba(input_data)[0][1]
+        )
+
+        # Risk classification
+        risk = (
+            "HIGH RISK"
+            if probability > 0.5
+            else "LOW RISK"
+        )
+
+        # Response
+        return {
+
+            "fraud_probability":
+                round(probability, 4),
+
+            "risk_level":
+                risk
+        }
+
+    except Exception as e:
+
+        return {
+
+            "error":
+                str(e)
+        }
