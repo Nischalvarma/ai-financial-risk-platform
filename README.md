@@ -242,7 +242,39 @@ ai-financial-risk-platform/
 ├── requirements.txt
 └── README.md
 ```
+# API Screenshot
 
+![API](images/api.png)
+
+---
+
+# Tableau Dashboard
+
+![Dashboard](images/tableau.png)
+
+---
+
+# Docker Deployment
+
+![Docker](images/docker.png)
+
+---
+
+# GitHub Repository Overview
+
+![GitHub Overview](images/github-overview.png)
+
+---
+
+# GitHub README Section
+
+![GitHub README](images/github-readme.png)
+
+---
+
+# GitHub Project Structure
+
+![GitHub Structure](images/github-structure.png)
 ---
 
 # Author
