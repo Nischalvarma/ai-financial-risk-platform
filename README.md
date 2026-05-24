@@ -1,5 +1,7 @@
 # Financial Risk Intelligence Platform
 
+[Live API Deployment](https://ai-financial-risk-platform.onrender.com/docs)
+
 A production-style machine learning platform designed to detect high-risk financial transactions using modern data engineering and deployment workflows.
 
 This project combines machine learning, backend API development, cloud deployment, dashboard analytics, and pipeline engineering into a single end-to-end fraud detection system.
@@ -46,7 +48,11 @@ Render Cloud Deployment
   ↓
 Tableau Dashboard
 ```
+# Architecture Diagram
 
+---
+
+[Architecture](images/architecture.png)
 ---
 
 # Tech Stack
@@ -264,7 +270,7 @@ ai-financial-risk-platform/
 
 ## Repository Overview
 
-![GitHub Overview](images/github-overview.png)
+![GitHub Overview](images/github-structure.png)
 
 ---
 
@@ -274,7 +280,7 @@ ai-financial-risk-platform/
 ---
 
 
-![GitHub Structure](images/github-structure.png)
+![GitHub Structure](images/github-overview.png)
 
 ---
 
