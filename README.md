@@ -268,13 +268,11 @@ ai-financial-risk-platform/
 
 ---
 
-## README Documentation
 
 ![GitHub README](images/github-readme.png)
 
 ---
 
-## Project Structure
 
 ![GitHub Structure](images/github-structure.png)
 
